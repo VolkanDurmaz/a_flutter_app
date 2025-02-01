@@ -1,8 +1,4 @@
-# Application
-
-A new Flutter project.
-
-## Getting Started
+## SW App
 
 This project is a starting point for a Flutter application.
 
