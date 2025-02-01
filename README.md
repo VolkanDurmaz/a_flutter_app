@@ -6,4 +6,4 @@ A new Flutter project.
 
 This project is a starting point for a Flutter application.
 
-<img src="https://github.com/VolkanDurmaz/a_flutter_app/images/login.png"/>
+<img src="https://github.com/VolkanDurmaz/a_flutter_app/images/ios/login.png"/>
