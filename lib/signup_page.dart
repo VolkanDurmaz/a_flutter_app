@@ -34,19 +34,71 @@ class _SignUpPageState extends State<SignUpPage> {
 
     if (_formKey.currentState!.validate()) {
       try {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        UserCredential userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailController.text,
           password: _passwordController.text,
         );
+
+        // Mail Verification
+        await userCredential.user!.sendEmailVerification();
         // ScaffoldMessenger.of(context).showSnackBar(
         //   SnackBar(content: Text('Sign Up Successful')),
         // );
-        // Navigate to another page after successful sign-up
+
+        if (userCredential.user != null) {
+          await userCredential.user!.sendEmailVerification();
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: Text(
+                      'Sign Up Successful! Please check your email for verification.')),
+            );
+            Navigator.pop(context);
+          }
+        }
       } on FirebaseAuthException catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sign Up Failed: ${e.toString()}')),
-        );
+        if (_passwordController.text.length < 6) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Password must be at least 6 characters long.')),
+          );
+          return;
+        }
+        if (e.code == 'email-already-in-use') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('An account already exists for this email.')),
+          );
+        }
+
+        bool isValidEmail(String email) {
+          return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+        }
+
+        if (!isValidEmail(_emailController.text)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Please enter a valid email address.')),
+          );
+          return;
+        }
+
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(content: Text('Sign Up Failed: ${e.toString()}')),
+        // );
       }
+    }
+  }
+
+  void resendVerificationEmail() async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null && !user.emailVerified) {
+      await user.sendEmailVerification();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Verification email sent!')),
+      );
     }
   }
 
@@ -206,6 +258,14 @@ class _SignUpPageState extends State<SignUpPage> {
                           style: TextStyle(
                               color: const Color.fromARGB(255, 255, 255, 255))),
                     ),
+
+                    // TextButton(
+                    //   onPressed: resendVerificationEmail,
+                    //   child: Text(
+                    //     'Resend Verification Email',
+                    //     style: TextStyle(color: Colors.white),
+                    //   ),
+                    // ),
 
                     TextButton(
                       onPressed: widget.showLoginPage,
