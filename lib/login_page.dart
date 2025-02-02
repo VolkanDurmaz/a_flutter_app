@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-// import 'home.dart';
 import 'forgot_password.dart';
 
 class LoginPage extends StatefulWidget {
@@ -18,17 +17,17 @@ class _LoginPageState extends State<LoginPage> {
 
   Future signIn() async {
     //loading...
-    // showDialog(
-    //   context: context,
-    //   builder: (context) {
-    //     return const Center(
-    //       child: CircularProgressIndicator(
-    //         color: Colors.orangeAccent,
-    //         backgroundColor: Colors.green,
-    //       ),
-    //     );
-    //   },
-    // );
+    showDialog(
+      context: context,
+      builder: (context) {
+        return const Center(
+          child: CircularProgressIndicator(
+            color: Colors.orangeAccent,
+            backgroundColor: Colors.green,
+          ),
+        );
+      },
+    );
 
     try {
       // Sign in with email and password
@@ -36,6 +35,7 @@ class _LoginPageState extends State<LoginPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+      Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
       // Handle errors
       String errorMessage = 'Email or password are incorrect.';
@@ -44,11 +44,11 @@ class _LoginPageState extends State<LoginPage> {
       } else if (e.code == 'wrong-password') {
         errorMessage = 'Wrong password provided.';
       }
-
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
       );
+      Navigator.pop(context);
     }
   }
 
