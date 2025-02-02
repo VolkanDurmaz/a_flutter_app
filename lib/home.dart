@@ -1,5 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'login_page.dart';
 import 'dart:async';
 
 String getTime() {
@@ -11,7 +11,7 @@ String getTime() {
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key, Key? key_});
+  const HomePage({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -21,7 +21,7 @@ class HomePage extends StatelessWidget {
         // Update the dark theme
         primaryColor: Colors.blueGrey, // Update the primary color
       ),
-      home: const MyHomePage(title: 'Clock'),
+      home: const MyHomePage(title: 'What time is it?'),
     );
   }
 }
@@ -35,6 +35,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final user = FirebaseAuth.instance.currentUser!;
   String timeVar = getTime();
   late Timer _timer;
 
@@ -60,19 +61,13 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(user.email!),
         actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () {
-              // Perform logout logic here
-              // For now, just navigate back to the login page
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
-              );
-            },
-          ),
+          GestureDetector(
+              onTap: () {
+                FirebaseAuth.instance.signOut();
+              },
+              child: (Icon(Icons.logout_rounded))),
         ],
         centerTitle: true,
         backgroundColor: Colors.blueGrey,
@@ -81,13 +76,6 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'Global Clock',
-              style: TextStyle(
-                fontSize: 24.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
             Text(
               timeVar,
               style: const TextStyle(
