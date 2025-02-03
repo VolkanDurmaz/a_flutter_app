@@ -1,4 +1,5 @@
-import '../home.dart';
+import 'package:app/auth/verify_email_page.dart';
+// import '../home.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'auth_page.dart';
@@ -13,7 +14,7 @@ class MainPage extends StatelessWidget {
             stream: FirebaseAuth.instance.authStateChanges(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                return HomePage();
+                return VerifyEmailPage();
               } else {
                 return AuthPage();
               }

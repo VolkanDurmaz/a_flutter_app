@@ -26,11 +26,11 @@
 		</data>
 		<key>Modules/FirebaseCoreInternal.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo</key>
 		<data>
-		jvevpbef+H6rLjrZ1uBSxHpZUy0=
+		GLPjFo/G7uqUn9JRphxqGkgH/30=
 		</data>
 		<key>Modules/FirebaseCoreInternal.swiftmodule/Project/x86_64-apple-ios-simulator.swiftsourceinfo</key>
 		<data>
-		9ojVWYk/+tiUxqPkiLo5pdiYhpQ=
+		30kos+6U3g4GfKJCj/BUeNzoyfE=
 		</data>
 		<key>Modules/FirebaseCoreInternal.swiftmodule/arm64-apple-ios-simulator.abi.json</key>
 		<data>
@@ -42,7 +42,7 @@
 		</data>
 		<key>Modules/FirebaseCoreInternal.swiftmodule/arm64-apple-ios-simulator.swiftmodule</key>
 		<data>
-		zGmVw3UvTxB84+PSWhoTrDzu54A=
+		9O112AuAXBnJ6g/n75DEYX4mQdg=
 		</data>
 		<key>Modules/FirebaseCoreInternal.swiftmodule/x86_64-apple-ios-simulator.abi.json</key>
 		<data>
@@ -54,7 +54,7 @@
 		</data>
 		<key>Modules/FirebaseCoreInternal.swiftmodule/x86_64-apple-ios-simulator.swiftmodule</key>
 		<data>
-		9+9XZ70RoTwde+VPXIJo6mBayic=
+		2e2Ms4BDpQYM8TnEm3rBdG5v4ow=
 		</data>
 		<key>Modules/module.modulemap</key>
 		<data>
@@ -95,14 +95,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			sIx7tx2uEF/fFoms1xQZWuJfAM092zLueJ3tA9yhfes=
+			2R7iNkji0I+ZDRTZTeSXm/fGUno+4d4Rlj9rg2R5Pb4=
 			</data>
 		</dict>
 		<key>Modules/FirebaseCoreInternal.swiftmodule/Project/x86_64-apple-ios-simulator.swiftsourceinfo</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			y54zDesr1ACnD5xc0G4XeVN1aa/P4o+1tDhvIm+ZX3M=
+			7YUFnwQGm5f5cj1j82YkcAujtlj7lZA0zFGQvj1QgKM=
 			</data>
 		</dict>
 		<key>Modules/FirebaseCoreInternal.swiftmodule/arm64-apple-ios-simulator.abi.json</key>
@@ -123,7 +123,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			uw6+TvdIiQbPBNxMgHRdkA17DHD/NscO2IFtcKhFtNg=
+			H6snirSMcTusiamcjb89ey/3GrV4gRKUutFWRZWuBtI=
 			</data>
 		</dict>
 		<key>Modules/FirebaseCoreInternal.swiftmodule/x86_64-apple-ios-simulator.abi.json</key>
@@ -144,7 +144,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			qL2zFKyVC7lMKuIBCb0+8MC8Lurswm8WjSDI+OwuDhc=
+			wzGdgI4+uhO1AveKM9YQ+u0/i+/xU9GEX5wUbqs6gGs=
 			</data>
 		</dict>
 		<key>Modules/module.modulemap</key>

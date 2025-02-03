@@ -16,26 +16,12 @@ class _LoginPageState extends State<LoginPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future signIn() async {
-    //loading...
-    showDialog(
-      context: context,
-      builder: (context) {
-        return const Center(
-          child: CircularProgressIndicator(
-            color: Colors.orangeAccent,
-            backgroundColor: Colors.green,
-          ),
-        );
-      },
-    );
-
     try {
       // Sign in with email and password
       await _auth.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
       // Handle errors
       String errorMessage = 'Email or password are incorrect.';
@@ -48,7 +34,6 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
       );
-      Navigator.pop(context);
     }
   }
 
