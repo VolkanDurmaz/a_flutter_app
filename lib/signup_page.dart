@@ -72,7 +72,6 @@ class _SignUpPageState extends State<SignUpPage> {
                 content: Text('An account already exists for this email.')),
           );
         }
-
         bool isValidEmail(String email) {
           return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
         }
@@ -83,7 +82,6 @@ class _SignUpPageState extends State<SignUpPage> {
           );
           return;
         }
-
         // ScaffoldMessenger.of(context).showSnackBar(
         //   SnackBar(content: Text('Sign Up Failed: ${e.toString()}')),
         // );
