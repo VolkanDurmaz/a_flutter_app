@@ -23,85 +23,136 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   void signUp() async {
-    // showDialog(
-    //   context: context,
-    //   builder: (context) {
-    //     return const Center(
-    //       child: CircularProgressIndicator(),
-    //     );
-    //   },
-    // );
+    if (!_formKey.currentState!.validate()) return;
 
-    if (_formKey.currentState!.validate()) {
-      try {
-        UserCredential userCredential =
-            await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text,
-          password: _passwordController.text,
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Password must be at least 6 characters long.')),
+      );
+      return;
+    }
+
+    bool isValidEmail(String email) {
+      return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+    }
+
+    if (!isValidEmail(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter a valid email address.')),
+      );
+      return;
+    }
+
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      await userCredential.user?.sendEmailVerification();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Sign Up Successful! Please check your email for verification.')),
         );
+        Navigator.pop(context);
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'An error occurred. Please try again.';
 
-        // Mail Verification
-        await userCredential.user!.sendEmailVerification();
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(content: Text('Sign Up Successful')),
-        // );
+      if (e.code == 'email-already-in-use') {
+        errorMessage = 'An account already exists for this email.';
+      }
 
-        if (userCredential.user != null) {
-          await userCredential.user!.sendEmailVerification();
-
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: Text(
-                      'Sign Up Successful! Please check your email for verification.')),
-            );
-            Navigator.pop(context);
-          }
-        }
-      } on FirebaseAuthException catch (e) {
-        if (_passwordController.text.length < 6) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Password must be at least 6 characters long.')),
-          );
-          return;
-        }
-        if (e.code == 'email-already-in-use') {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('An account already exists for this email.')),
-          );
-        }
-        bool isValidEmail(String email) {
-          return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
-        }
-
-        if (!isValidEmail(_emailController.text)) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Please enter a valid email address.')),
-          );
-          return;
-        }
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(content: Text('Sign Up Failed: ${e.toString()}')),
-        // );
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage)));
       }
     }
   }
+
+  // void signUp() async {
+  //   if (_formKey.currentState!.validate()) {
+  //     try {
+  //       UserCredential userCredential =
+  //           await FirebaseAuth.instance.createUserWithEmailAndPassword(
+  //         email: _emailController.text,
+  //         password: _passwordController.text,
+  //       );
+
+  //       // Mail Verification
+
+  //       if (userCredential.user != null) {
+  //         await userCredential.user!.sendEmailVerification();
+
+  //         if (mounted) {
+  //           ScaffoldMessenger.of(context).showSnackBar(
+  //             SnackBar(
+  //                 content: Text(
+  //                     'Sign Up Successful! Please check your email for verification.')),
+  //           );
+  //           Navigator.pop(context);
+  //         }
+  //       }
+  //     } on FirebaseAuthException catch (e) {
+  //       if (_passwordController.text.length < 6) {
+  //         if (mounted) {
+  //           ScaffoldMessenger.of(context).showSnackBar(
+  //             SnackBar(
+  //                 content:
+  //                     Text('Password must be at least 6 characters long.')),
+  //           );
+  //         }
+  //         return;
+  //       }
+  //       if (e.code == 'email-already-in-use') {
+  //         if (mounted) {
+  //           ScaffoldMessenger.of(context).showSnackBar(
+  //             SnackBar(
+  //                 content: Text('An account already exists for this email.')),
+  //           );
+  //         }
+  //       }
+  //       bool isValidEmail(String email) {
+  //         return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  //       }
+
+  //       if (!isValidEmail(_emailController.text)) {
+  //         if (mounted) {
+  //           ScaffoldMessenger.of(context).showSnackBar(
+  //             SnackBar(content: Text('Please enter a valid email address.')),
+  //           );
+  //         }
+  //         return;
+  //       }
+  //     }
+  //   }
+  // }
 
   void resendVerificationEmail() async {
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user != null && !user.emailVerified) {
       await user.sendEmailVerification();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Verification email sent!')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Verification email sent!')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -117,64 +168,67 @@ class _SignUpPageState extends State<SignUpPage> {
 
           // Semi-transparent Overlay
           Container(
-            color: const Color.fromARGB(255, 63, 55, 55).withOpacity(0.5),
+            color: const Color.fromARGB(255, 63, 55, 55).withValues(alpha: 0.5),
           ),
+
+          // Logo
           Positioned(
-              top: 70,
-              left: 30,
-              right: 30,
-              child: Image.asset('images/logo.png', height: 200)),
+            top: screenHeight * 0.05, // 5% from the top
+            left: screenWidth * 0.1, // 10% from the left
+            right: screenWidth * 0.1, // 10% from the right
+            child: AspectRatio(
+              aspectRatio: 16 / 9, // Maintain aspect ratio
+              child: Image.asset('images/logo.png'),
+            ),
+          ),
+
+          // Motto
           Positioned(
-            top: 225,
-            left: 30,
-            right: 30,
+            top: screenHeight * 0.25, // 25% from the top
+            left: screenWidth * 0.1, // 10% from the left
+            right: screenWidth * 0.1, // 10% from the right
             child: Text(
               'What are we doing\n on Sunday?',
-              style: TextStyle(color: Colors.white, fontSize: 25),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: screenWidth * 0.06, // 6% of screen width
+              ),
               textAlign: TextAlign.center,
             ),
           ),
-          // Sign Up Form
 
+          // Sign Up Form
           Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(top: 110, left: 32, right: 32),
+              padding: EdgeInsets.only(
+                top: screenHeight * 0.3, // 30% from the top
+                left: screenWidth * 0.1, // 10% padding
+                right: screenWidth * 0.1, // 10% padding
+              ),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: <Widget>[
-                    // Add your logo or other widgets here
-                    // Image.asset('images/logo.png', height: 200),
-                    // SizedBox(height: 50.0),
-
-                    // Text(
-                    //   'What are we doing\n on Sunday?',
-                    //   style: TextStyle(color: Colors.white, fontSize: 25),
-                    //   textAlign: TextAlign.center,
-                    // ),
-                    SizedBox(height: 50.0),
-
+                    // Email TextField
                     TextFormField(
                       keyboardType: TextInputType.emailAddress,
                       controller: _emailController,
                       style: TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         hintText: 'Enter your email',
-                        hintStyle:
-                            TextStyle(color: Colors.grey), // Hint text color
+                        hintStyle: TextStyle(color: Colors.grey),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15.0),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15.0),
-                          borderSide: BorderSide(
-                              color: Colors.yellow,
-                              width: 2.0), // Active border color
+                          borderSide:
+                              BorderSide(color: Colors.yellow, width: 2.0),
                         ),
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.8),
+                        fillColor: Colors.white.withValues(alpha: 0.8),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -183,25 +237,25 @@ class _SignUpPageState extends State<SignUpPage> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 16.0),
+                    SizedBox(height: screenHeight * 0.02), // 2% spacing
+
+                    // Password TextField
                     TextFormField(
                       controller: _passwordController,
                       style: TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         hintText: 'Enter password',
-                        hintStyle:
-                            TextStyle(color: Colors.grey), // Hint text color
+                        hintStyle: TextStyle(color: Colors.grey),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15.0),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15.0),
-                          borderSide: BorderSide(
-                              color: Colors.yellow,
-                              width: 2.0), // Active border color
+                          borderSide:
+                              BorderSide(color: Colors.yellow, width: 2.0),
                         ),
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.8),
+                        fillColor: Colors.white.withValues(alpha: 0.8),
                       ),
                       obscureText: true,
                       validator: (value) {
@@ -211,25 +265,25 @@ class _SignUpPageState extends State<SignUpPage> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 16.0),
+                    SizedBox(height: screenHeight * 0.02), // 2% spacing
+
+                    // Confirm Password TextField
                     TextFormField(
                       controller: _confirmPasswordController,
                       style: TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         hintText: 'Confirm password',
-                        hintStyle:
-                            TextStyle(color: Colors.grey), // Hint text color
+                        hintStyle: TextStyle(color: Colors.grey),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15.0),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15.0),
-                          borderSide: BorderSide(
-                              color: Colors.yellow,
-                              width: 2.0), // Active border color
+                          borderSide:
+                              BorderSide(color: Colors.yellow, width: 2.0),
                         ),
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.8),
+                        fillColor: Colors.white.withValues(alpha: 0.8),
                       ),
                       obscureText: true,
                       validator: (value) {
@@ -243,38 +297,38 @@ class _SignUpPageState extends State<SignUpPage> {
                       },
                     ),
 
-                    SizedBox(height: 24.0),
+                    SizedBox(height: screenHeight * 0.03), // 3% spacing
+
+                    // Sign Up Button
                     ElevatedButton(
                       onPressed: signUp,
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
                             const Color.fromARGB(255, 226, 176, 59),
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 130, vertical: 15),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.3, // 30% of screen width
+                          vertical: screenHeight * 0.02, // 2% of screen height
+                        ),
                       ),
-                      child: Text('Sign Up',
-                          style: TextStyle(
-                              color: const Color.fromARGB(255, 255, 255, 255))),
+                      child: Text(
+                        'Sign Up',
+                        style: TextStyle(
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          fontSize: screenWidth * 0.04, // 4% of screen width
+                        ),
+                      ),
                     ),
 
-                    // TextButton(
-                    //   onPressed: resendVerificationEmail,
-                    //   child: Text(
-                    //     'Resend Verification Email',
-                    //     style: TextStyle(color: Colors.white),
-                    //   ),
-                    // ),
+                    SizedBox(height: screenHeight * 0.02), // 2% spacing
 
+                    // Login Button
                     TextButton(
                       onPressed: widget.showLoginPage,
-                      // onPressed: () {
-                      //   // Navigate back to the login page
-                      //   Navigator.pop(context);
-                      // },
                       child: Text(
                         'Already have an account? Login',
                         style: TextStyle(
                           color: Colors.white,
+                          fontSize: screenWidth * 0.04, // 4% of screen width
                         ),
                       ),
                     ),

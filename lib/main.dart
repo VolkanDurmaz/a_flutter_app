@@ -1,5 +1,4 @@
 import 'package:app/auth/main_page.dart';
-// import 'package:app/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -8,6 +7,7 @@ void main() async {
   try {
     await Firebase.initializeApp();
   } catch (e) {
+    // ignore: avoid_print
     print('Error initializing Firebase: $e');
   }
   runApp(MyApp());

@@ -5,6 +5,7 @@ import 'forgot_password.dart';
 class LoginPage extends StatefulWidget {
   final VoidCallback showRegisterPage;
   const LoginPage({super.key, required this.showRegisterPage});
+
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -14,26 +15,47 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   Future signIn() async {
-    try {
-      // Sign in with email and password
-      await _auth.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-    } on FirebaseAuthException catch (e) {
-      // Handle errors
-      String errorMessage = 'Email or password are incorrect.';
-      if (e.code == 'user-not-found') {
-        errorMessage = 'No user found for that email.';
-      } else if (e.code == 'wrong-password') {
-        errorMessage = 'Wrong password provided.';
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+      try {
+        await _auth.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+      } on FirebaseAuthException catch (e) {
+        // ignore: avoid_print
+        print(e.code);
+        String errorMessage = 'Email or password are incorrect.';
+        // if (e.code == 'user-not found') {
+        //   if (mounted) {
+        //     ScaffoldMessenger.of(context).showSnackBar(
+        //       SnackBar(content: Text('No user found for that email.')),
+        //     );
+        //   }
+        //   return;
+
+        //   // errorMessage = 'No user found for that email.';
+        // } else if (e.code == 'wrong-password') {
+        //   if (mounted) {
+        //     ScaffoldMessenger.of(context).showSnackBar(
+        //       SnackBar(content: Text('Wrong password provided.')),
+        //     );
+        //   }
+        //   return;
+        //   // errorMessage = 'Wrong password provided.';
+        // }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMessage)),
+          );
+        }
+      } finally {
+        setState(() => _isLoading = false);
       }
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
     }
   }
 
@@ -46,10 +68,13 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
-          // Background Image
           Container(
             height: double.infinity,
             width: double.infinity,
@@ -60,88 +85,101 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-          // Semi-transparent Overlay
           Container(
-            color: const Color.fromARGB(255, 63, 55, 55).withOpacity(0.5),
+            color: const Color.fromARGB(255, 63, 55, 55).withValues(alpha: 0.5),
           ),
           Positioned(
-              top: 70,
-              left: 30,
-              right: 30,
-              child: Image.asset('images/logo.png', height: 200)),
-          // Login Form
+            top: screenHeight * 0.05, // Adjust this value to move the logo
+            left: screenWidth * 0.1,
+            right: screenWidth * 0.1,
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Image.asset('images/logo.png'),
+            ),
+          ),
           Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32.0),
+              padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.1,
+                vertical: screenHeight * 0.05,
+              ),
               child: Form(
                 key: _formKey,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    // Logo
-                    // Image.asset(
-                    //   'images/logo.png',
-                    //   height: 200,
-                    // ),
-                    // SizedBox(height: 50.0),
+                    SizedBox(height: screenHeight * 0.2), // Space for the logo
                     Text(
                       'What are we doing\n on Sunday?',
-                      style: TextStyle(color: Colors.white, fontSize: 25),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: screenWidth * 0.06,
+                      ),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 50.0),
-
-                    // Email TextField
+                    SizedBox(
+                        height: screenHeight * 0.05), // Space below the motto
                     TextFormField(
                       keyboardType: TextInputType.emailAddress,
                       controller: _emailController,
                       decoration: InputDecoration(
                         hintText: 'Enter your email',
-                        hintStyle:
-                            TextStyle(color: Colors.grey), // Hint text color
+                        hintStyle: TextStyle(color: Colors.grey),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15.0),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15.0),
-                          borderSide: BorderSide(
-                              color: Colors.yellow,
-                              width: 2.0), // Active border color
+                          borderSide:
+                              BorderSide(color: Colors.yellow, width: 2.0),
                         ),
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.8),
+                        fillColor: Colors.white.withValues(alpha: 0.8),
                       ),
-                      style: TextStyle(color: Colors.black), // Text color
+                      style: TextStyle(color: Colors.black),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your email';
                         }
+                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                            .hasMatch(value)) {
+                          return 'Please enter a valid email address';
+                        }
                         return null;
                       },
                     ),
-                    SizedBox(height: 16.0),
-
-                    // Password TextField
+                    SizedBox(height: screenHeight * 0.02),
                     TextFormField(
                       controller: _passwordController,
                       decoration: InputDecoration(
                         hintText: 'Enter your password',
-                        hintStyle:
-                            TextStyle(color: Colors.grey), // Hint text color
+                        hintStyle: TextStyle(color: Colors.grey),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15.0),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15.0),
-                          borderSide: BorderSide(
-                              color: Colors.yellow,
-                              width: 2.0), // Active border color
+                          borderSide:
+                              BorderSide(color: Colors.yellow, width: 2.0),
                         ),
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.8),
+                        fillColor: Colors.white.withValues(alpha: 0.8),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
                       ),
-                      style: TextStyle(color: Colors.black), // Text color
-                      obscureText: true,
+                      style: TextStyle(color: Colors.black),
+                      obscureText: !_isPasswordVisible,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your password';
@@ -149,12 +187,9 @@ class _LoginPageState extends State<LoginPage> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 1.0),
-
-                    //Forgot Password
+                    SizedBox(height: screenHeight * 0.01),
                     TextButton(
                       onPressed: () {
-                        // Navigate to the Forgot Password Page
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -165,45 +200,41 @@ class _LoginPageState extends State<LoginPage> {
                         alignment: Alignment.centerRight,
                         child: Text(
                           'Forgot Your Password?',
-                          // textAlign: TextAlign.left,
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: screenWidth * 0.03,
                             color: const Color.fromARGB(255, 69, 183, 225),
                           ),
                         ),
                       ),
                     ),
-                    // Login Button
+                    SizedBox(height: screenHeight * 0.02),
                     ElevatedButton(
-                      onPressed: signIn,
+                      onPressed: _isLoading ? null : signIn,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(255, 226, 176, 1),
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 140, vertical: 15),
-                      ),
-                      child: Text(
-                        'Login',
-                        style: TextStyle(
-                          color: const Color.fromARGB(255, 255, 255, 255),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.3,
+                          vertical: screenHeight * 0.02,
                         ),
                       ),
+                      child: _isLoading
+                          ? CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              'Login',
+                              style: TextStyle(
+                                color: const Color.fromARGB(255, 255, 255, 255),
+                                fontSize: screenWidth * 0.04,
+                              ),
+                            ),
                     ),
-                    SizedBox(height: 2.0),
-
-                    // Sign Up Button
+                    SizedBox(height: screenHeight * 0.02),
                     TextButton(
                       onPressed: widget.showRegisterPage,
-                      // onPressed: () {
-                      //   // Navigate to the Sign Up Page
-                      //   Navigator.push(
-                      //     context,
-                      //     MaterialPageRoute(builder: (context) => SignUpPage()),
-                      //   );
-                      // },
                       child: Text(
                         'Don\'t have an account? Sign up',
                         style: TextStyle(
                           color: Colors.white,
+                          fontSize: screenWidth * 0.04,
                         ),
                       ),
                     ),

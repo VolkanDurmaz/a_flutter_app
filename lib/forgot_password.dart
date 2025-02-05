@@ -21,25 +21,30 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     try {
       await FirebaseAuth.instance
           .sendPasswordResetEmail(email: _emailController.text.trim());
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text('Password reset link sent! Check your Email'),
-          );
-        },
-      );
-    } on FirebaseAuthException catch (e) {
-      print(e);
-      showDialog(
+      if (mounted) {
+        showDialog(
           context: context,
           builder: (context) {
             return AlertDialog(
-              content: Text(
-                e.message.toString(),
-              ),
+              content: Text('Password reset link sent! Check your Email'),
             );
-          });
+          },
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      // ignore: avoid_print
+      print(e);
+      if (mounted) {
+        showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                content: Text(
+                  e.message.toString(),
+                ),
+              );
+            });
+      }
     }
   }
 
@@ -61,7 +66,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           ),
           // Semi-transparent Overlay
           Container(
-            color: const Color.fromARGB(255, 63, 55, 55).withOpacity(0.5),
+            color: const Color.fromARGB(255, 63, 55, 55).withValues(alpha: 0.5),
           ),
           Positioned(
               top: 70,
@@ -100,7 +105,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               width: 2.0), // Active border color
                         ),
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.8),
+                        fillColor: Colors.white.withValues(alpha: 0.8),
                       ),
                       style: TextStyle(color: Colors.black), // Text color
                       validator: (value) {

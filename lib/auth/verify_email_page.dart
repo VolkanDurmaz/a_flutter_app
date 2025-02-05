@@ -3,8 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '/home.dart';
 
 class VerifyEmailPage extends StatefulWidget {
+  const VerifyEmailPage({super.key});
+
   @override
-  _VerifyEmailPageState createState() => _VerifyEmailPageState();
+  State<VerifyEmailPage> createState() => _VerifyEmailPageState();
 }
 
 class _VerifyEmailPageState extends State<VerifyEmailPage> {
@@ -36,10 +38,12 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
 
     if (_isEmailVerified) {
       // Navigate to the homepage if email is verified
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage()),
-      );
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+      }
     }
   }
 
@@ -50,14 +54,17 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
       });
 
       await _user?.sendEmailVerification();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Verification email sent!')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Verification email sent!')),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send verification email: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send verification email: $e')),
+        );
+      }
     } finally {
       setState(() {
         _isLoading = false;
@@ -91,7 +98,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: _checkEmailVerification,
-              child: Text('Check Verification Status'),
+              child: Text('I\'ve verified my email'),
             ),
           ],
         ),

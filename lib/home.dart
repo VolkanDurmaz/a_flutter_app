@@ -1,65 +1,15 @@
-import 'package:app/auth/main_page.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'events/create_event.dart';
+import 'auth/main_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'events/event_list_page.dart';
+import 'users/user_profile.dart';
 
-String getTime() {
-  String hours = DateTime.now().hour.toString().padLeft(2, '0');
-  String minutes = DateTime.now().minute.toString().padLeft(2, '0');
-  String seconds = DateTime.now().second.toString().padLeft(2, '0');
-  String currentTime = '$hours:$minutes:$seconds';
-  return currentTime;
-}
+final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'What time is it?',
-      theme: ThemeData.dark().copyWith(
-        // Update the dark theme
-        primaryColor: Colors.blueGrey, // Update the primary color
-      ),
-      home: const MyHomePage(title: 'What time is it?'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, Key? key_, required this.title});
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  final user = FirebaseAuth.instance.currentUser!;
-  String timeVar = getTime();
-  late Timer _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 1), _incrementCounter);
-  }
-
-  void _incrementCounter(Timer timer) {
-    setState(() {
-      timeVar = getTime();
-    });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _timer.cancel();
-  }
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future _logout(BuildContext context) async {
     bool confirmLogout = await showDialog(
@@ -81,15 +31,19 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     if (confirmLogout == true) {
       try {
-        await _auth.signOut(); // Sign out the user
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MainPage()),
-        );
+        await _auth.signOut();
+        if (context.mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => MainPage()),
+          );
+        } // Sign out the user
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to log out: $e')),
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to log out: $e')),
+          );
+        }
       }
     }
   }
@@ -98,8 +52,27 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(user.email!),
+        title: Text('Active Events'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () {
+              // Navigate to UserProfilePage
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => UserProfilePage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.list),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => EventListPage()),
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () => _logout(context), // Call the logout function
@@ -108,20 +81,62 @@ class _MyHomePageState extends State<MyHomePage> {
         centerTitle: true,
         backgroundColor: Colors.blueGrey,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              timeVar,
-              style: const TextStyle(
-                fontSize: 48.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueGrey,
-              ),
-            ),
-          ],
-        ),
+      body: StreamBuilder(
+        stream: FirebaseFirestore.instance.collection('events').snapshots(),
+        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text('Henüz etkinlik yok.'));
+          }
+
+          var events = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: events.length,
+            itemBuilder: (context, index) {
+              var event = events[index].data() as Map<String, dynamic>;
+
+              String title = event.containsKey('name')
+                  ? event['name']
+                  : "Bilinmeyen Etkinlik";
+              dynamic date = event.containsKey('date') ? event['date'] : null;
+
+              String formattedDate = "Tarih bilgisi yok";
+              if (date != null) {
+                if (date is Timestamp) {
+                  formattedDate =
+                      "Tarih: ${date.toDate()}"; // Eğer Timestamp ise direkt çevir
+                } else if (date is String) {
+                  try {
+                    formattedDate =
+                        "Tarih: ${DateTime.parse(date)}"; // Eğer String ise DateTime'a çevir
+                  } catch (e) {
+                    formattedDate = "Geçersiz tarih formatı";
+                  }
+                }
+              }
+
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                child: ListTile(
+                  title: Text(title, style: TextStyle(fontSize: 18)),
+                  subtitle: Text(formattedDate),
+                ),
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => EventCreationPage()),
+          );
+        },
+        child: Icon(Icons.add),
       ),
     );
   }
